@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain()
+        })
+
+        const pointCloud = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/RasterImage/点云切片数据/tileset.json')
+
+        viewer.scene.primitives.add(pointCloud)
+        // viewer.zoomTo(pointCloud)
+        viewer.camera.viewBoundingSphere(pointCloud.boundingSphere, new Cesium.HeadingPitchRange(0, -0.5, 0))
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function(movement) {
+            const pick = viewer.scene.pick(movement.position);
+            if (Cesium.defined(pick) && Cesium.defined(pick.primitive) && pick.primitive instanceof Cesium.Cesium3DTileset)
+            pick.primitive.show =!pick.primitive.show;},
+            Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    </script>
+</body>
+</html>

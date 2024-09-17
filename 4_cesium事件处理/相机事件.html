@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        //修改鼠标右键为倾斜视角操作
+        viewer.scene.screenSpaceCameraController.tiltEventTypes = [
+            Cesium.CameraEventType.RIGHT_DRAG,
+            {
+                eventType: Cesium.CameraEventType.RIGHT_DRAG,
+                modifier: Cesium.KeyboardEventModifier.CTRL
+            }
+        ]
+
+        //修改滚轮为缩放操作
+        viewer.scene.screenSpaceCameraController.zoomEventTypes = [
+            Cesium.CameraEventType.WHEEL,
+            Cesium.CameraEventType.PINCH,  // 触摸板缩放
+            Cesium.CameraEventType.MIDDLE_DRAG
+        ]
+
+
+        //相机事件
+        //lookEventTypes 3D视图、2.5D改变相机观察方向
+        //rotateEventTypes 3D视图相机绕地球旋转
+        //translateEventTypes 2.5D、2D视图平移
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+
+    <style>
+        .toolbar{
+            position:absolute;
+            top:10px;
+            left: 20px;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+
+    <div class="toolbar">
+        <select id="entity_style">
+            <option value="origin">origin</option>
+            <option value="dash">虚线</option>
+            <option value="arrow">箭头</option>
+            <option value="outline">轮廓</option>
+            <option value="show">显示/隐藏</option>
+            <option value="delete">删除</option>
+        </select>
+    </div>
+
+
+    <script type="module">
+        
+        const entity_style = document.querySelector('#entity_style')
+        entity_style.addEventListener('change',(e)=>{
+            console.log(e.target.value)
+            switch(e.target.value){
+                case 'origin':
+                    {
+                        polyline = {
+                            id : 'polyline',
+                            name: '线',
+                            polyline: {
+                                positions: Cesium.Cartesian3.fromDegreesArrayHeights([105.0, 30.0, 10000, 105.0, 31, 10000, 106, 31, 10000]),
+                                width: 2,
+                                material: Cesium.Color.BLUE.withAlpha(0.5),
+                            }
+                        }
+                        viewer.entities.removeById('polyline')
+                        viewer.entities.add(polyline)
+                        break;
+                    }
+                case 'dash':
+                    {
+                        polyline.polyline.material = new Cesium.PolylineDashMaterialProperty({
+                            color: Cesium.Color.BLUE.withAlpha(0.5)  // 设置虚线颜色
+                        })
+                        viewer.entities.removeById('polyline')
+                        viewer.entities.add(polyline)
+                        break;
+                    }
+                case 'arrow':
+                    {
+                        
+                        polyline.polyline.material = new Cesium.PolylineArrowMaterialProperty(Cesium.Color.RED)
+                        viewer.entities.removeById('polyline')
+                        viewer.entities.add(polyline)
+                    break;
+                    }
+                case 'outline':
+                    {
+                        polyline.polyline.outline = true
+                        polyline.polyline.outlineColor = Cesium.Color.BLACK
+                        polyline.polyline.outlineWidth = 10
+                        viewer.entities.removeById('polyline')
+                        viewer.entities.add(polyline)
+                        break;
+                    }
+
+                case 'show':
+                    {
+                        polyline.polyline.show = !polyline.polyline.show
+                        viewer.entities.removeById('polyline')
+                        viewer.entities.add(polyline)
+                    }
+                case 'delete':
+                    {
+                        viewer.entities.removeById('polyline')
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        })
+
+
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        // 绘制贴地图形，需要先创建地形数据
+        const terrainModels = await Cesium.createWorldTerrainAsync()
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: terrainModels,
+        })
+
+
+        // 贴地 线
+        let polyline = {
+            id : 'polyline',
+            name: '线',
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArrayHeights([105.0, 30.0, 10000, 105.0, 31, 10000, 106, 31, 10000]),
+                width: 2,
+                material: Cesium.Color.BLUE.withAlpha(0.5),
+                // material: new Cesium.PolylineDashMaterialProperty({
+                //     color: Cesium.Color.BLUE.withAlpha(0.5)  // 设置虚线颜色
+                // })
+                // clampToGround: true,  // 线贴地
+            }
+        }
+        viewer.entities.add(polyline)
+
+
+
+
+
+
+
+
+        viewer.zoomTo(viewer.entities)
+
+
+
+    </script>
+</body>
+</html>

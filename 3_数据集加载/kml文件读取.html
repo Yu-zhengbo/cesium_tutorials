@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain()
+        })
+
+        const kmldata = await Cesium.KmlDataSource.load('../../../cesium_pdf/矢量文件/kml/road.kml',{
+            clampToGround: true, // 贴地显示
+            fill:Cesium.Color.PINK,   // 填充颜色
+            stroke:Cesium.Color.HOTPINK, // 描边颜色
+            strokeWidth:5, // 描边宽度
+        })
+        
+        viewer.dataSources.add(kmldata).then(function(dataSource){
+            viewer.zoomTo(dataSource)
+        })
+        // viewer.zoomTo(geojson)
+
+    </script>
+</body>
+</html>

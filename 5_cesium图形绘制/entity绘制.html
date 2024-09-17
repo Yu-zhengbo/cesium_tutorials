@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        // 点
+        const point = {
+            id:'point',
+            name:'点',
+            position: Cesium.Cartesian3.fromDegrees(118.0, 32.0, 100.0),
+            point: {
+                color:Cesium.Color.RED,
+                pixelSize: 5
+            }
+        }
+        viewer.entities.add(point)
+
+        // 线
+        const polyline = {
+            id:'polyline',
+            name:'线',
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArrayHeights([118.0, 32.0, 100.0, 118.0, 32.5, 100.0, 118.5, 32.5, 100.0]),
+                width: 2,
+                material: Cesium.Color.BLUE.withAlpha(0.5),
+                // clampToGround: true
+            }
+        }
+        viewer.entities.add(polyline)
+
+        // 面
+        const polygon = {
+            id:'polygon',
+            name:'面',
+            polygon: {
+                hierarchy: Cesium.Cartesian3.fromDegreesArray([118.0, 32.0, 118.0, 32.5, 118.5, 32.5, 118.5, 32.0]),
+                material: Cesium.Color.GREEN.withAlpha(0.5)
+                }
+            }
+        viewer.entities.add(polygon)
+
+        // 矩形
+        const rectangle = {
+            id:'rectangle',
+            name:'矩形',
+            rectangle: {
+                coordinates: Cesium.Rectangle.fromDegrees(118.0, 32.0, 118.5, 32.5), 
+                height:100,
+                material: Cesium.Color.YELLOW.withAlpha(0.5)
+            }
+        }
+        viewer.entities.add(rectangle)
+
+
+        //椭圆
+        const ellipse = {
+            id:'ellipse',
+            name:'椭圆',
+            position: Cesium.Cartesian3.fromDegrees(118.0, 32.0), //椭圆的中心点
+            ellipse: {
+                semiMinorAxis: 500.0,
+                semiMajorAxis: 1000.0,
+                height: 200,
+                material: Cesium.Color.CYAN.withAlpha(0.5),
+            }
+        }
+        viewer.entities.add(ellipse)
+
+        // 圆柱体
+        const cylinder = {
+            id:'cylinder',
+            name:'圆柱体',
+            position: Cesium.Cartesian3.fromDegrees(118.0, 32.0,5000.0), // 圆柱体的中心点
+            cylinder: {
+                length: 1000.0,
+                topRadius: 800.0,
+                bottomRadius: 500.0,
+                material: Cesium.Color.ORANGE.withAlpha(0.5),
+            }
+        }
+        viewer.entities.add(cylinder)
+
+        //走廊
+        const corridor = {
+            id:'corridor',
+            name:'走廊',
+            corridor: {
+                height: 1000,
+                positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+                    118.0, 32.0, 1000,
+                    118.0, 32.5, 1000,
+                    118.5, 32.5, 1000,
+                    118.5, 32.0, 1000]), // 走廊中心线的坐标点
+                width: 2000,
+                material: Cesium.Color.PURPLE.withAlpha(0.5),
+            }
+        }
+        viewer.entities.add(corridor)
+
+        //墙
+        const wall = {
+            id:'wall',
+            name:'墙',
+            wall: {
+                positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+                    118.0, 32.0, 100000,
+                    118.0, 32.5, 100000,
+                    118.5, 32.5, 10000,
+                    118.5, 32.0, 100000,
+                    118.0, 32.0, 100000,]), // 墙的坐标点
+                material: Cesium.Color.BROWN.withAlpha(0.5),
+            }
+        }
+        viewer.entities.add(wall)
+
+
+        //方盒
+        const box = {
+            id:'box',
+            name:'方盒',
+            position: Cesium.Cartesian3.fromDegrees(116.0, 32.0, 100000), //方盒的中心点
+            box: {
+                dimensions: new Cesium.Cartesian3(100000, 50000, 20000), // 方盒的长宽高
+                material: Cesium.Color.BLUE.withAlpha(0.5),
+            }
+        }
+        viewer.entities.add(box)
+
+        //圆球体
+        const ellipsoid = {
+            id:'cone',
+            name:'圆锥体',
+            position: Cesium.Cartesian3.fromDegrees(116.0, 32.0, 100000), //圆锥体的中心点
+            ellipsoid: {
+                radii: new Cesium.Cartesian3(50000, 25000, 10000), // 圆锥体的半径
+                material: Cesium.Color.RED.withAlpha(0.5),
+            }
+        }
+        viewer.entities.add(ellipsoid)
+
+
+
+        // 模型
+        const model = {
+            id:'model',
+            name:'模型',
+            position: Cesium.Cartesian3.fromDegrees(116.0, 32.0, 100000), //模型的中心点
+            model: {
+                uri: "../../../cesium_pdf/3D格式数据/glb/Cesium_Air.glb",
+                minimumPixelSize: 128,
+                maximumScale: 20000,
+                color: Cesium.Color.WHITE,
+                scale: 1,
+            }
+        }
+        viewer.entities.add(model)
+
+
+        //广告牌
+        const billboard = {
+            id:'billboard',
+            name:'广告牌',
+            position: Cesium.Cartesian3.fromDegrees(114.0, 32.0, 100000), //广告牌的中心点
+            billboard: {
+                image: '../../../cesium_pdf/RasterImage/图片/single.jpg',
+                scale: 0.1,
+            }
+        }
+        viewer.entities.add(billboard)
+
+        viewer.zoomTo(viewer.entities)
+
+    </script>
+</body>
+</html>

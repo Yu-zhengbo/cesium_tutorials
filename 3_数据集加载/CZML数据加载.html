@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        const czml = [
+            {
+                id: 'document',
+                name: 'CZML Model',
+                version: '1.0'
+            },
+            {
+                id: 'plane',
+                name: 'Cesium Plane',
+                position: {
+                    cartographicDegrees: [114.39278, 30.52357, 30.0]
+                },
+                model:{
+                    gltf:"../../../cesium_pdf/3D格式数据/glb/Cesium_Air.glb",
+                    scale:2
+                }
+            }
+        ]
+
+        const dataSourcePromise = Cesium.CzmlDataSource.load(czml);
+        viewer.dataSources.add(dataSourcePromise);
+        viewer.zoomTo(dataSourcePromise);
+    </script>
+</body>
+</html>

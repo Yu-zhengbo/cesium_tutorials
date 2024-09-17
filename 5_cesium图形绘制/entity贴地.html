@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        // 绘制贴地图形，需要先创建地形数据
+        const terrainModels = await Cesium.createWorldTerrainAsync()
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: terrainModels,
+        })
+
+        // 贴地 点
+        const point = {
+            id : 'point',
+            position: Cesium.Cartesian3.fromDegrees(105.0, 30.0),
+            description:`<h1 text-align:center>贴地点</h1>
+                <p>
+                    <table text-align: center; border-collapse: collapse>
+                    <tr> <th>名称</th> <td>贴地点</td> </tr> 
+                    <tr> <th>经度</th> <td>105.0</td> </tr> 
+                    <tr> <th>纬度</th> <td>30.0</td> </tr>
+                    <tr> <th>高度</th> <td>0.0</td> </tr>
+                    <tr> <th>尺寸</th> <td>100px</td> </tr>
+                    </table>
+                </p>
+            `,
+            point: {
+                pixelSize: 30,
+                color: Cesium.Color.RED,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,  // 点贴地
+            }
+        }
+        viewer.entities.add(point)
+
+        // 贴地 线
+        const polyline = {
+            id : 'polyline',
+            name: '贴地线',
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArray([105.0, 30.0, 105.0, 31, 106, 31]),
+                width: 2,
+                material: Cesium.Color.BLUE.withAlpha(0.5),
+                clampToGround: true,  // 线贴地
+            }
+        }
+        viewer.entities.add(polyline)
+
+
+        // 贴地 面
+        const polygon = {
+            id : 'polygon',
+            name: '贴地面',
+            polygon: {
+                hierarchy: Cesium.Cartesian3.fromDegreesArray([105.0, 30.0, 105.0, 31, 106, 31]),
+                material: Cesium.Color.GREEN.withAlpha(0.5),
+                // clampToGround: true,  // 面贴地
+                // classificationType: Cesium.ClassificationType.BOTH,  // 贴地面
+                classificationType: Cesium.ClassificationType.TERRAIN,  // 贴地面
+            }
+        }
+        viewer.entities.add(polygon)
+
+        // 贴地 矩形
+        const rectangle = {
+            id :'rectangle',
+            name: '贴地矩形',
+            rectangle: {
+                coordinates: Cesium.Rectangle.fromDegrees(104.0, 29.0, 106.0, 32.0),
+                material: Cesium.Color.YELLOW.withAlpha(0.5),
+                // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,  // 矩形贴地
+                clampToGround: true
+            }
+        }
+        viewer.entities.add(rectangle)
+
+
+
+
+
+
+
+
+
+
+
+        viewer.zoomTo(viewer.entities)
+
+
+
+    </script>
+</body>
+</html>

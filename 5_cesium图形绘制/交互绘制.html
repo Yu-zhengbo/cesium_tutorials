@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        .toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id ='menu' class="toolbar">
+        <select id="dropdown" value="drawPoint">
+            <option value="null">选择绘制类型</option>
+            <option value="drawPoint">绘制点</option>
+            <option value="drawLine">绘制线</option>
+            <option value="drawPolygon">绘制面</option>
+            <option value="drawRectangle">绘制矩形</option>
+            <option value="drawEllipse">绘制圆</option>
+            <option value="drawModel">绘制模型</option>
+            <option value="clearAll">清除</option>
+        </select>
+    </div>
+
+    <script type="module">
+        let activeShapePoints = []
+        let activeShape;
+        let floatingPoint;
+        let drawModel// = 'drawPoint'
+
+        
+        const dropdown = document.getElementById('dropdown');
+        dropdown.addEventListener('change', function() {
+            drawModel = dropdown.value
+            console.log(drawModel)
+            if (drawModel === 'clearAll'){
+                viewer.entities.removeAll()
+                viewer.scene.primitives.removeAll()
+            }
+
+        })
+        
+
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const terrain = await Cesium.createWorldTerrainAsync()
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrainProvider: terrain
+        })
+
+        viewer.scene.globe.depthTestAgainstTerrain = true; // 开启地形深度检测
+
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset);
+
+
+
+        function drawPoint(position) {
+            // console.log(position)   
+            let point = {
+                name: 'Point',
+                position: position,
+                point: {
+                    pixelSize: 6,
+                    color: Cesium.Color.BLUE,
+                    outlineColor: Cesium.Color.YELLOW,
+                    outlineWidth: 2,
+                },
+            };
+            viewer.entities.add(point)
+            return point
+        }
+
+        async function addModel(position) {
+            const modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(position)
+            const model = await Cesium.Model.fromGltfAsync({
+                url:'../../../cesium_pdf/3D格式数据/glTF/CesiumMilkTruck.gltf',
+                modelMatrix: modelMatrix,
+                // position:position,
+                scale:5,
+                minimumPixelSize:128
+            })
+            // console.log(model)
+            viewer.scene.primitives.add(model)
+        }
+
+        function drawShape(positionData){
+            let shape;
+            if (drawModel === 'drawLine'){
+                shape = {
+                    name: 'Line',
+                    polyline:{
+                        positions: positionData,
+                        material: Cesium.Color.BLUE.withAlpha(0.5),
+                        width: 2,
+                        clampToGround: true,
+                    }
+                }
+                viewer.entities.add(shape)
+            }
+            else if (drawModel === 'drawPolygon'){
+                shape = {
+                    name: 'Polygon',
+                    polygon: {
+                        hierarchy: positionData,
+                        material: Cesium.Color.BLUE.withAlpha(0.5),
+                    }
+                }
+            }
+            else if (drawModel === 'drawRectangle'){
+                shape = {
+                    name: 'Rectangle',
+                    rectangle: {
+                        // coordinates: positionData,
+                        coordinates: new Cesium.Rectangle.fromCartesianArray(positionData),
+                        material: Cesium.Color.BLUE.withAlpha(0.5),
+                    }
+                }
+                // console.log(shape)
+            }
+            else if (drawModel === 'drawEllipse'){
+                shape = {
+                    name: 'Ellipse',
+                    position: positionData[0],
+                    ellipse: {
+                        semiMinorAxis: new Cesium.CallbackProperty(function(){
+                            let r = Math.sqrt(Math.pow(positionData[0].x - positionData[2].x, 2) + Math.pow(positionData[0].y - positionData[2].y, 2))
+                            return r
+                        }, false),
+                        semiMajorAxis: new Cesium.CallbackProperty(function(){
+                            let r = Math.sqrt(Math.pow(positionData[0].x - positionData[1].x, 2) + Math.pow(positionData[0].y - positionData[1].y, 2))
+                            return r
+                        }, false),
+                        // height: 2000,
+                        material: Cesium.Color.BLUE.withAlpha(0.5),
+                    }
+                }
+                console.log(shape)
+            }
+
+            return shape
+        }
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+        handler.setInputAction(function (Movement) {
+            // console.log(Movement)
+            let earthPosition = viewer.scene.pickPosition(Movement.position)
+            console.log(earthPosition)
+            if (drawModel === 'drawPoint'){
+                console.log(earthPosition)
+                activeShape = drawPoint(earthPosition)
+            }
+            else if (drawModel === 'drawModel'){
+                addModel(earthPosition)
+            }
+            else if (drawModel === 'drawLine' || drawModel === 'drawPolygon' || drawModel === 'drawRectangle' || drawModel === 'drawEllipse'){
+                if (Cesium.defined(earthPosition)){
+                    activeShapePoints.push(earthPosition)
+                    drawPoint(earthPosition)
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+        handler.setInputAction(function (Movement) {
+            console.log(activeShapePoints)
+            if (activeShapePoints.length){
+                let shape = drawShape(activeShapePoints)
+                viewer.entities.add(shape)
+                activeShapePoints = []
+            }
+        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
+
+
+
+
+
+    </script>
+</body>
+</html>

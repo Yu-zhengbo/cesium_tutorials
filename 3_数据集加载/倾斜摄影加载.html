@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+        // await viewer.terrainProvider.readyPromise;
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+
+        var heightOffset = -28
+        var boundingSphere = tileset.boundingSphere;
+        var cartographic = Cesium.Cartographic.fromCartesian(boundingSphere.center);
+        var surface = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, 0.0);
+        
+
+
+        // 请求地形服务，获取该位置的地形高度
+        // var updatedPositions = await Cesium.sampleTerrainMostDetailed(viewer.terrainProvider, [cartographic]);
+
+        // 地形的高度
+        // var terrainHeight = updatedPositions[0].height;
+
+        // 模型当前的高度
+        // var modelHeight = cartographic.height;
+
+        // 计算高度偏移量
+        // var heightOffset = terrainHeight - modelHeight;
+        // console.log(heightOffset)
+        var offset = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, heightOffset);
+        var translation = Cesium.Cartesian3.subtract(offset, surface, new Cesium.Cartesian3());
+        tileset.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
+
+
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset)
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        function callbackFunc(e) {
+            // console.log(e)
+            console.log('渲染事件')
+        }
+        viewer.scene.preUpdate.addEventListener(callbackFunc)
+        viewer.scene.preUpdate.removeEventListener(callbackFunc)
+
+        //场景渲染事件
+        //先场景更新，再渲染
+        //preUpdate：在场景更新之前触发，可以用来更新一些数据，比如更新几何体的属性。
+        //postUpdate：在场景更新之后触发，可以用来更新一些数据，比如更新几何体的属性。
+        //preRender：在渲染之前触发，可以用来更新一些数据，比如更新几何体的属性。
+        //postRender：在渲染之后触发，可以用来更新一些数据，比如更新几何体的属性。
+    </script>
+</body>
+</html>

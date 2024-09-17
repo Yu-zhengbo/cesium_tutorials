@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function(movement) {
+            console.log("Mouse left click: "+movement.position);
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        // handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+
+
+        //常用的鼠标事件
+        //鼠标左键单击事件 LEFT_CLICK
+        //鼠标左键双击事件 LEFT_DOUBLE_CLICK
+        //鼠标右键单击事件 RIGHT_CLICK
+        //鼠标右键双击事件 RIGHT_DOUBLE_CLICK
+        //鼠标中键单击事件 MIDDLE_CLICK
+        //鼠标中键双击事件 MIDDLE_DOUBLE_CLICK
+        
+        //鼠标移动事件 MOUSE_MOVE
+        //鼠标滚轮事件 WHEEL
+
+    </script>
+</body>
+</html>
