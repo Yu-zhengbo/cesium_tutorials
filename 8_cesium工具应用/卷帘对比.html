@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js"></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #slider {
+            position: absolute;
+            left: 50%;
+            top: 0%;
+            background-color: #d3d3d3;
+            width: 5px;
+            height: 100%;
+            z-index: 9999;
+        }
+
+        #slider:hover {
+            cursor: ew-resize;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cesiumContainer">
+        <div id="slider"></div>
+    </div>
+
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+            baseLayerPicker: false,
+            infoBox: false,
+        });
+
+        const layers = viewer.imageryLayers;
+        const earthAtNight = viewer.imageryLayers.addImageryProvider(
+            await Cesium.IonImageryProvider.fromAssetId(4),
+        );
+        earthAtNight.splitDirection = Cesium.SplitDirection.LEFT; // Only show to the left of the slider.
+        layers.add(earthAtNight);
+
+
+        // Sync the position of the slider with the split position
+        const slider = document.getElementById("slider");
+        viewer.scene.splitPosition = slider.offsetLeft / slider.parentElement.offsetWidth;
+
+        // console.log(slider.offsetLeft, slider.parentElement.offsetWidth);
+
+        const handler = new Cesium.ScreenSpaceEventHandler(slider);
+
+        let moveActive = false;
+
+        function move(movement) {
+            if (!moveActive) {
+                return;
+            }
+            const relativeOffset = movement.endPosition.x;
+            const splitPosition =
+                (slider.offsetLeft + relativeOffset) /
+                slider.parentElement.offsetWidth;
+            // debugger
+            slider.style.left = `${100.0 * splitPosition}%`;
+            viewer.scene.splitPosition = splitPosition;
+        }
+
+        handler.setInputAction(function () {
+            moveActive = true;
+        }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+
+        handler.setInputAction(move, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+
+        handler.setInputAction(function () {
+            moveActive = false;
+        }, Cesium.ScreenSpaceEventType.LEFT_UP);
+
+
+    </script>
+</body>
+
+</html>

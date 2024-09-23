@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id="toolbar">
+        <input type="text" id="Date" value="2021-05-10" placeholder="日期" maxlength="10"><br>
+        <input type="text" id="StartDate" value="8" placeholder="开始时间" maxlength="6"><br>
+        <input type="text" id="EndDate" value="18" placeholder="结束时间" maxlength="6"><br>
+        <button id="start">播放</button>
+        <button id="stop">停止</button>
+    </div>
+
+
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+        const osmBuildings = await Cesium.createOsmBuildingsAsync()
+        viewer.scene.primitives.add(osmBuildings)
+        viewer.scene.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(114.29964,30.61214,2000)
+        })
+
+        function play() {
+            const date = document.getElementById("Date")
+            const startDate = document.getElementById("StartDate")
+            const endDate = document.getElementById("EndDate")
+            
+            let d = new Date(date.value)
+            let s = new Date(d).setHours(startDate.value)
+            let e = new Date(d).setHours(endDate.value)
+
+            viewer.scene.globe.enableLighting = true
+            viewer.shadows = true
+            viewer.clock.startTime = Cesium.JulianDate.fromDate(new Date(s))
+            viewer.clock.stopTime = Cesium.JulianDate.fromDate(new Date(e))
+            viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(s))
+            viewer.clock.multiplier = 1600
+
+            viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP
+            viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER
+
+        }
+        
+
+        const start = document.getElementById("start")
+        start.addEventListener("click", play)
+
+        const stop = document.getElementById("stop")
+        stop.addEventListener("click", function() {
+            viewer.scene.globe.enableLighting = false
+            viewer.shadows = false
+        })
+
+    </script>
+</body>
+</html>

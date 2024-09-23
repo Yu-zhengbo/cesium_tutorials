@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+
+
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        let rotation = 0
+        let amount = 4
+
+        const rader = {
+            position:Cesium.Cartesian3.fromDegrees(114.40372,30.52252),
+            ellipse:{
+                semiMinorAxis: 300,
+                semiMajorAxis: 300,
+                material:new Cesium.ImageMaterialProperty({
+                    image:'../../../cesium_pdf/RasterImage/图片/color.png',
+                    color:new Cesium.Color(1,0,0,0.7),
+                }),
+                height:0,
+                outline:true,
+                outlineWidth:2,
+                outlineColor:new Cesium.Color(1,0,0,1),
+                stRotation:new Cesium.CallbackProperty(function(){
+                    rotation += amount
+                    if (rotation > 360 || rotation < -360) {
+                        rotation = 0
+                    }
+                    return Cesium.Math.toRadians(rotation)
+                }, false)
+            }
+        }
+
+        viewer.entities.add(rader)
+        const point = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(114.40372,30.52252),
+            point: {
+                pixelSize: 10,
+                color: Cesium.Color.RED,
+                heightReference: Cesium.HeightReference.CLAMP_TO_FROUND
+            }
+        })
+        viewer.camera.setView({
+            destination:Cesium.Cartesian3.fromDegrees(114.40372,30.52252,2000),
+        })
+    </script>
+</body>
+</html>

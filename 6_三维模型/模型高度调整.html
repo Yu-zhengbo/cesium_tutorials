@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #heightAdjust{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id="heightAdjust">
+        <label style="color: white;">高度</label> <br/>
+        <input type="range" min="-100" max="100" step="1" value="0" id="R">
+        <input type="text" style="width: 70px;" id="heightValue" value="0">
+    </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset);
+
+
+        const R = document.getElementById('R');
+        const heightValue = document.getElementById('heightValue');
+
+        R.addEventListener('input',change);
+        heightValue.addEventListener('input',change2);
+
+        function change(){
+            let height = R.value;
+            heightValue.value = height;
+            if (isNaN(height)){
+                return;
+            }
+            const cartographic = Cesium.Cartographic.fromCartesian(tileset.boundingSphere.center);
+            const surface = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude);
+            const offset = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, height);
+
+            const translation = Cesium.Cartesian3.subtract(offset, surface, new Cesium.Cartesian3());
+            console.log(translation);
+            tileset.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
+        }
+        function change2(){
+            let height = heightValue.value;
+            R.value = height;
+            if (isNaN(height)){
+                return;
+            }
+            change();
+        }
+    </script>
+</body>
+</html>

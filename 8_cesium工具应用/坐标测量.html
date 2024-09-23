@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset)
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+        let annatation = viewer.scene.primitives.add(new Cesium.LabelCollection())
+
+        function createPoint(position) {
+            let point = viewer.entities.add({
+                position: position,
+                point: {
+                    pixelSize: 10,
+                    color: Cesium.Color.RED,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 2,
+                    disableDepthTestDistance : 1000,
+                }
+            }
+        )}
+
+        function createLabel(cartesian, lng, lat, height) {
+            createPoint(cartesian)
+            annatation.add({
+                position: cartesian,
+                text : 'longitude:' + lng.toFixed(5) + '\u00B0' +
+                        '\nlatitude:'+ lat.toFixed(5) + '\u00B0'+
+                        '\nheight:'+ height.toFixed(5) + 'm',
+                showBackground : true,
+                font : '16px Helvetica',
+                horizontalOrigin : Cesium.HorizontalOrigin.LEFT,
+                verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+                disableDepthTestDistance : Number.POSITIVE_INFINITY,
+            })
+        }
+
+        handler.setInputAction(function (movement) {
+            let pick_object = viewer.scene.pick(movement.position)
+            if (Cesium.defined(pick_object)) {
+                let cartesian = viewer.scene.pickPosition(movement.position)
+                let cartographic = Cesium.Cartographic.fromCartesian(cartesian)
+                let lng = Cesium.Math.toDegrees(cartographic.longitude)
+                let lat = Cesium.Math.toDegrees(cartographic.latitude)
+                let height = cartographic.height
+                createLabel(cartesian, lng, lat, height)
+            }
+            else {
+                let ray = viewer.camera.getPickRay(movement.position)
+                let cartesian = viewer.scene.globe.pick(ray, viewer.scene)
+                if (Cesium.defined(cartesian)) {
+                    let cartographic = Cesium.Cartographic.fromCartesian(cartesian)
+                    let lng = Cesium.Math.toDegrees(cartographic.longitude)
+                    let lat = Cesium.Math.toDegrees(cartographic.latitude)
+                    let height = cartographic.height
+                    createLabel(cartesian, lng, lat, height)
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+        handler.setInputAction(function (movement) {
+            annatation.removeAll()
+            viewer.entities.removeAll()
+        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
+
+
+
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset)
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+
+        function getDistance(points){
+            let distance = 0;
+            for (let i = 0; i < points.length - 1; i++) {
+                distance += Cesium.Cartesian3.distance(points[i], points[i+1]);
+            }
+            return distance;
+        }
+
+        function drawPoint(position){
+            let cartographic = Cesium.Cartographic.fromCartesian(position);
+
+            let point = viewer.entities.add({
+                // id:'point',
+                name:'点',
+                position: position,
+                point: {
+                    color:Cesium.Color.RED,
+                    pixelSize: 5
+                },
+                label:{
+                    text: `${cartographic.height.toFixed(2)}m`,
+                    font: '14px Helvetica',
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    outlineWidth: 2,
+                    outlineColor: Cesium.Color.BLACK,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -10),
+
+                }
+            })
+        }
+
+        function drawLine(positions){
+            let line = viewer.entities.add({
+                // id:'line',
+                name:'线',
+                polyline: {
+                    positions: positions,
+                    width: 2,
+                    material: new Cesium.PolylineOutlineMaterialProperty({
+                        color: Cesium.Color.YELLOW.withAlpha(0.5),
+                        outlineWidth: 3,
+                        outlineColor: Cesium.Color.BLACK
+                    })
+                }
+            })
+        }
+
+
+        let points = []
+        handler.setInputAction(function(movement) {
+            let cartesian = viewer .scene.pickPosition(movement.position);
+            drawPoint(cartesian)
+            if(points.length > 0){
+                drawLine([points[points.length-1],cartesian])    
+            }
+            points.push(cartesian)
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+        handler.setInputAction(function(movement) {
+            let distance = getDistance(points)
+            console.log(`距离为：${distance.toFixed(2)}m`)
+            points = []
+        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
+
+
+
+
+    </script>
+</body>
+</html>

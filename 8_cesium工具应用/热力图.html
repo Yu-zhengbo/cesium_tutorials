@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../src/CesiumHeatmap/CesiumHeatmap.js"></script>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+
+        let bounds = {
+            west : 114,
+            east : 115,
+            south : 30,
+            north : 31
+        }
+
+        let valueMin = 0
+        let valueMax = 100
+
+        let params = {
+            radius : 150,
+            maxOpacity : 0.5,
+            minOpacity : 0,
+            blur : 0.75
+        }
+
+        let heatMap = CesiumHeatmap.create(viewer, bounds, params)
+        $.ajax({
+            url:"../sourceData/heatmap.json",
+            type:"GET",
+            dataType:"json",
+            success:function(data){
+                console.log(data)
+                heatMap.setWGS84Data(valueMin, valueMax, data)
+            }
+        })
+
+        // viewer.zoomTo(bounds)
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(114.1977,30.6533,200000)
+        })
+
+    </script>
+</body>
+</html>

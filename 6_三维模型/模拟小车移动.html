@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+        // viewer.scene.globe.depthTestAgainstTerrain = true;
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset);
+
+        let czml = [
+            {
+                "id": "document",
+                "version": "1.0",
+                "clock":{
+                    "interval" : "2022-04-14T15:18:00Z/2022-04-14T15:18:15Z",
+                    currentTime: "2022-04-14T15:18:00Z",
+                }
+            },
+            {
+                "id": "CesiumMilkTruck",
+                "model":{
+                    "gltf": "../../../cesium_pdf/RasterImage/CZML/CesiumMilkTruck/CesiumMilkTruck.glb",
+                },
+                "position": {
+                    "cartesian": [
+                        // 初始时间点
+                        "2022-04-14T15:18:00Z",
+                        -1715306.5175099864, 4993455.496718319, 3566986.1689425386,
+                        // 某个中间时间点
+                        "2022-04-14T15:18:12Z",
+                        -1715529.0193483282, 4993383.694752825, 3566984.256377016,
+                        // 结束时间点
+                        "2022-04-14T15:18:15Z",
+                        -1715541.2997855775, 4993376.825711799, 3566988.324779788
+                    ]
+                },
+            },
+            {
+                "id": "Polyline",
+                "polyline": {
+                "positions": {
+                    "cartesian": [
+                        -1715306.5175099864, 4993455.496718319, 3566986.1689425386,
+                        -1715529.0193483282, 4993383.694752825, 3566984.256377016,
+                        -1715541.2997855775, 4993376.825711799, 3566988.324779788
+                    ]
+                },
+                "material": {
+                    "polylineOutline": {
+                    "color": {
+                        "rgba": [125, 255, 128, 255]
+                    },
+                    "outlineWidth": 0
+                    }
+                },
+                "width": 5,
+                "clampToGround": true
+                }
+            }
+        ]
+
+        let entity;
+        let positionProperty;
+        let dataSourcePromise = Cesium.CzmlDataSource.load(czml);
+
+        viewer.dataSources.add(dataSourcePromise).then(function(dataSource) {
+            entity = dataSource.entities.getById('CesiumMilkTruck')
+            positionProperty = entity.position
+            entity.orientation = new Cesium.VelocityOrientationProperty(positionProperty)
+        })
+
+
+        function start(){
+            viewer.scene.postRender.addEventListener(function() {
+                let postion = positionProperty.getValue(viewer.clock.currentTime)
+                entity.position = viewer.scene.clampToHeight(postion,[entity])
+        })
+        }
+
+        // tileset.initialTilesLoaded.addEventListener(start)
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #toolbar {
+            background: rgba(245, 240, 240, 0.8);
+            top: 4px;
+            border-radius: 4px;
+            position: absolute;
+        }
+
+        #toolbar input {
+            vertical-align: middle;
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer" class="fullSize"></div>
+
+    <div id="toolbar">
+      <table>
+        <tbody>
+          <tr>
+            <!-- 第一部分：用于修改模型颜色混合模式，并对模型材质进行修改 -->
+            <td>Model Color</td>
+          </tr>
+          <tr>
+            <td>Mode</td>
+            <td>
+              <select id="mode">
+                <option value="Highlight">Highlight</option>
+                <option value="Replace">Replace</option>
+                <option value="Mix">Mix</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>Color</td>
+            <td>
+              <select id="color">
+                <option value="White">White</option>
+                <option value="Red">Red</option>
+                <option value="Green">Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Gray">Gray</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>Alpha</td>
+            <td>
+              <input type="range" min="0.0" max="1.0" step="0.01" value="1" id="alpha" oninput="changeAlpha()">
+              <input type="text" size="5" value="1" id="alphaValue" onchange="changeAlpha2()">
+            </td>
+          </tr>
+          <tr>
+            <td>Mix</td>
+            <td>
+              <input type="range" min="0.0" max="1.0" step="0.01" value="0.5" id="mix" oninput="changeMix()">
+              <input type="text" size="5" value="0.5" id="mixValue" onchange="changeMix2()">
+            </td>
+          </tr>
+          <tr>
+            <!-- 第二部分：用于修改模型外包围线材质 -->
+            <td>Model Silhouette</td>
+          </tr>
+          <tr>
+            <td>Color</td>
+            <td>
+              <select id="sColor" onchange="changeSColor()">
+                <option value="Red">Red</option>
+                <option value="Green">Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Gray">Gray</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>Alpha</td>
+            <td>
+              <input type="range" min="0.0" max="1.0" step="0.01" value="1" id="sAlpha" oninput="changeSAlpha()">
+              <input type="text" size="5" value="1" id="sAlphaValue" onchange="changeSAlpha2()">
+            </td>
+          </tr>
+          <tr>
+            <td>Size</td>
+            <td>
+              <input type="range" min="0.0" max="10.0" step="0.01" value="2" id="size" oninput="changeSSize()">
+              <input type="text" size="5" value="2" id="sizeValue" onchange="changeSSize2()">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+        
+
+        const mode = document.getElementById('mode');
+        const color = document.getElementById('color');
+        const alpha = document.getElementById('alpha');
+        const alphaValue = document.getElementById('alphaValue');
+        const mix = document.getElementById('mix');
+        const mixValue = document.getElementById('mixValue');
+        const sColor = document.getElementById('sColor');
+        const sAlpha = document.getElementById('sAlpha');
+        const sAlphaValue = document.getElementById('sAlphaValue');
+        const size = document.getElementById('size');
+        const sizeValue = document.getElementById('sizeValue');
+
+        function getColor(colorName,alpha){
+            const color = Cesium.Color[colorName.toUpperCase()]
+            return Cesium.Color.fromAlpha(color,parseFloat(alpha));
+        }
+
+        function getColorBlendMode(modeName){
+            return Cesium.ColorBlendMode[modeName.toUpperCase()];
+        }
+
+
+
+        let entity = viewer.entities.add({
+            name:"飞机",
+            position:Cesium.Cartesian3.fromDegrees(104,40,1350),
+            model:{
+                uri:"../../../cesium_pdf/3D格式数据/glb/Cesium_Air.glb",
+                minimumPixelSize:2,
+                maximumScale:200,
+                color:getColor(color.value,alpha.value),
+                colorBlendMode:getColorBlendMode(mode.value),
+                colorBlendAmount:mix.value,
+                silhouetteColor:getColor(sColor.value,sAlpha.value),
+                silhouetteSize:size.value
+            }
+        });
+        viewer.zoomTo(entity);
+
+        color.addEventListener('change',function(){
+            entity.model.color = getColor(color.value,alpha.value);
+        });
+        alpha.addEventListener('input',function(){
+            alphaValue.value = alpha.value;
+            entity.model.color = getColor(color.value,alpha.value);
+        });
+        mode.addEventListener('change',function(){
+            entity.model.colorBlendMode = getColorBlendMode(mode.value);
+        })
+        mix.addEventListener('input',function(){
+            mixValue.value = mix.value;
+            entity.model.colorBlendAmount = mix.value;
+        });
+
+        sColor.addEventListener('change',function(){
+            entity.model.silhouetteColor = getColor(sColor.value,sAlpha.value);
+        });
+        sAlpha.addEventListener('input',function(){
+            sAlphaValue.value = sAlpha.value;
+            entity.model.silhouetteColor = getColor(sColor.value,sAlpha.value);
+        });
+
+        size.addEventListener('input',function(){
+            sizeValue.value = size.value;
+            entity.model.silhouetteSize = size.value;
+        });
+        
+    </script>
+</body>
+</html>

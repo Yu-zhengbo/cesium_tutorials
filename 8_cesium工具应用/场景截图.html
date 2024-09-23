@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        .tool{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div class="tool">
+        <button id="printButton">打印场景</button>
+    </div>
+        
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            // terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset);
+
+        const printButton = document.querySelector('#printButton');
+        printButton.addEventListener('click',function(){
+            console.log('打印场景');
+            let image = new Image();
+            viewer.render(); //渲染场景
+            image = viewer.scene.canvas.toDataURL('image/png')
+
+            let savelink = document.createElement('a');
+            savelink.href = image;
+            savelink.download = '当前场景.png';
+            document.body.appendChild(savelink);
+            savelink.click();
+            document.body.removeChild(savelink);
+        })
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset)
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+
+        function getDistance(point1,point2){
+            // let geodesic = new Cesium.EllipsoidGeodesic();
+            // geodesic.setEndPoints(point1,point2);
+            // let distance = geodesic.surfaceDistance;
+
+            // distance = Math.sqrt(Math.pow(distance,2)+ Math.pow(point1.height-point2.height,2))
+            let distance = Cesium.Cartesian3.distance(point1,point2);
+            return distance;
+        }
+
+        let radiansPerDegree = Math.PI / 180.0;
+        let degreesPerRadian = 180.0 / Math.PI;
+
+        function getBearing(from, to) {
+			var from = Cesium.Cartographic.fromCartesian(from);
+			var to = Cesium.Cartographic.fromCartesian(to);
+			//度转弧度表示
+			var lat1 = from.latitude * radiansPerDegree;
+			var lon1 = from.longitude * radiansPerDegree;
+			var lat2 = to.latitude * radiansPerDegree;
+			var lon2 = to.longitude * radiansPerDegree;
+
+			/*
+			 * 	Math.atan2用法及应用场景：https://zhuanlan.zhihu.com/p/306534228
+			 *	Haversine公式介绍及计算步骤：https://blog.csdn.net/gaocuisheng/article/details/126060795
+			*/
+
+			//返回从原点(0,0)到(x,y)点的线段与x轴正方向之间的平面角度(弧度值)
+				// 这段代码计算了两个地理坐标（lat1，lon1）和（lat2，lon2）之间的角度差。它使用了Haversine公式的数学原理，但是对其进行了简化以提高计算效率
+
+			var angle = -Math.atan2(  // 使用Math.atan2()函数计算角度差。这个函数接受两个参数，分别是正切值和余弦值，返回它们对应的角度值
+				/**
+				 * 	  这两行代码是用于计算地球上两个点之间的球面距离的。具体来说，它们计算了球面上两点连线在赤道面上的投影长度，以及两点连线与赤道的夹角。
+				 * 这是利用球面三角学中的余弦定理来计算两点间距离的一部分。首先，我们需要知道地球上任意一点的经纬度可以用球坐标系表示。在这个坐标系中，
+				 * 纬度表示点到地球赤道的垂直距离（向北为正，向南为负），经度表示点在赤道上的投影与某个基准方向（通常是本初子午线）的夹角。球面上两点A
+				 * 和B的经纬度分别为(lat1, lon1)和(lat2, lon2)，我们可以计算两点之间的球面距离。
+				 * 
+				 * 这个距离可以通过以下步骤计算：
+				 * 		1、计算纬度差：delta_lat = lat2 - lat1；
+				 * 		2、计算经度差：delta_lon = lon2 - lon1；
+				 * 		3、将经纬度差转换为弧度：delta_lat_radians = delta_lat * Math.PI / 180，delta_lon_radians = delta_lon * Math.PI / 180；
+				 * 		4、计算X轴上的投影长度：x = Math.sin(delta_lon_radians) * Math.cos(lat2)；
+				 * 		5、计算Y轴上的投影长度：y = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(delta_lon_radians)；
+				 * 		6、计算两点间的球面距离：distance = R * Math.atan2(Math.sqrt(x^2 + y^2), Math.cos(delta_lat_radians))，其中R是地球的平均半径，约为6371公里。
+				 * 这里的X轴投影长度和Y轴投影长度实际上就是将两点之间的球面距离分解到赤道面上的水平和垂直分量。这对于理解球面三角形的性质和计算球面距离是很重要的。
+				*/
+				Math.sin(lon1 - lon2) * Math.cos(lat2),  // 表示在X轴上的投影长度
+				Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)  // 表示在Y轴上的投影长度
+				);
+			if (angle < 0) {
+				angle += Math.PI * 2.0;  // 如果angle小于0，表示计算得到的角度差是负数，需要将其转换为正数。这里将angle加上Math.PI * 2.0，即360度，将负数转换为正数。
+			}
+			//弧度转角度表示
+			angle = angle * degreesPerRadian;
+			return angle;
+		}
+
+        function getAngle(p1, p2, p3) {
+			var bearing21 = getBearing(p2, p1);
+			var bearing23 = getBearing(p2, p3);
+			
+			var angle = bearing21 - bearing23;
+			if (angle < 0) {
+				angle += 360;
+			}
+			return angle;
+		}
+
+        function drawPoint(position){
+            let cartographic = Cesium.Cartographic.fromCartesian(position);
+
+            let point = viewer.entities.add({
+                // id:'point',
+                name:'点',
+                position: position,
+                point: {
+                    color:Cesium.Color.RED,
+                    pixelSize: 5
+                },
+                label:{
+                    text: `${cartographic.height.toFixed(2)}m`,
+                    font: '14px Helvetica',
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    outlineWidth: 2,
+                    outlineColor: Cesium.Color.BLACK,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -10),
+
+                }
+            })
+        }
+
+        function drawLine(positions){
+            let line = viewer.entities.add({
+                // id:'line',
+                name:'线',
+                polyline: {
+                    positions: positions,
+                    width: 2,
+                    material: new Cesium.PolylineOutlineMaterialProperty({
+                        color: Cesium.Color.YELLOW.withAlpha(0.5),
+                        outlineWidth: 3,
+                        outlineColor: Cesium.Color.BLACK
+                    })
+                }
+            })
+        }
+
+        function drawPolygon(positions){
+            let polygon = viewer.entities.add({
+                // id:'polygon',
+                name:'面',
+                polygon: {
+                    hierarchy: positions,
+                    material: Cesium.Color.GREEN.withAlpha(0.5)
+                    }
+                })
+        }
+
+        
+        function getArea(points){
+            let area = 0;
+            for(let i = 0; i < points.length-2; i++){
+                let j = (i+1)%points.length;
+                let k = (i+2)%points.length;
+                let totalAngle = getAngle(points[i],points[j],points[k]);
+                totalAngle = totalAngle.toFixed(2);
+
+                let distance_ij = getDistance(points[i],points[j]);
+                let distance_jk = getDistance(points[j],points[k]);
+                
+                area += distance_ij*distance_jk*Math.abs(Math.round(Math.sin(totalAngle*Math.PI/180) * 10000)) / 10000;
+            }
+            return area.toFixed(2);
+        }
+
+        function addLabel(position,text){
+            let label = viewer.entities.add({
+                position: position,
+                label: {
+                    text: text+'m²',
+                    font: '14px Helvetica',
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    outlineWidth: 2,
+                    outlineColor: Cesium.Color.BLACK,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -30),
+                }
+            })
+        }
+        
+        let points = []
+        handler.setInputAction(function(movement) {
+            let cartesian = viewer .scene.pickPosition(movement.position);
+            drawPoint(cartesian)
+            if(points.length > 0){
+                drawLine([points[points.length-1],cartesian])    
+            }
+            points.push(cartesian)
+            
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+        handler.setInputAction(function(movement) {
+            if(points.length > 1){
+                drawPolygon(points)
+                let area = getArea(points)
+                console.log(`面积：${area}平方米`)
+                console.log(points)
+                addLabel(points[points.length-1],area.toString())
+            }
+            points = []
+        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
+
+
+
+
+    </script>
+</body>
+</html>

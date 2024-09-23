@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id="toolbar">
+        <select id="dropdown">
+            <option value="wall">视频墙</option>
+            <option value="ground">视频贴地</option>
+        </select>
+    </div>
+
+    <video id="myVideo" muted="true" autoplay="true" loop="true" style="display: none;">
+        <source src="../sourceData/result1.mp4" type="video/mp4">
+    </video>
+
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+
+
+        function videoWall(){
+            const videoElement = document.getElementById('myVideo');
+            let synchronizer = new Cesium.VideoSynchronizer({
+                clock : viewer.clock,
+                videoElement : videoElement,
+            })
+
+            viewer.clock.shouldAnimate = true;
+            let greenWall = viewer.entities.add({
+                name : 'videoWall',
+                wall : {
+                    positions : Cesium.Cartesian3.fromDegreesArrayHeights([114.391418,30.524281,120.0,
+                                                                    114.391918,30.524281,120.0]),
+                    material : videoElement,
+                    minimumHeights : [90,90],
+                    outline : true,
+                    shadows : Cesium.ShadowMode.ENABLED
+                },
+            })
+        }
+
+        function videoFusion() {
+            //获取Video标签
+            const videoElement = document.getElementById("myVideo");
+            //将视频元素与模拟时钟同步
+            let synchronizer = new Cesium.VideoSynchronizer({
+                clock: viewer.clock,
+                element: videoElement
+            });
+            //自动播放
+            viewer.clock.shouldAnimate = true;
+            var polygon = viewer.entities.add({
+                polygon: {
+                hierarchy: new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(
+                    [114.39344518569266, 30.525768035404223,
+                    114.3961071839177, 30.52566180691624,
+                    114.3960458511302, 30.524014906984178,
+                    114.39344432117545, 30.52402876336925,
+                    ])
+                ),
+                classificationType: Cesium.ClassificationType.BOTH,
+                material: videoElement,
+                stRotation: -45,
+                },
+            })
+        }
+
+        const dropdown = document.querySelector("#dropdown");
+        dropdown.addEventListener("change", function() {
+            switch (dropdown.value) {
+                case "wall":
+                    viewer.entities.removeAll()
+                    videoWall();
+                    viewer.zoomTo(viewer.entities)
+                    break;
+                case "ground":
+                    viewer.entities.removeAll()
+                    videoFusion();
+                    viewer.zoomTo(viewer.entities)
+                    break;
+            }
+        });
+
+        
+
+        
+
+    </script>
+</body>
+</html>

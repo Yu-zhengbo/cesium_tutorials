@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+
+        let longitude = 114.404;
+        let latitude = 30.532;
+        let range = 0.0001;
+        let duration = 8.0;
+        let cartographic = new Cesium.Cartographic()
+
+        const entity = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude,20),
+            model: {
+                uri: "../../../cesium_pdf/3D格式数据/glb/GroundVehicle.glb",
+            }
+        });
+        viewer.zoomTo(entity);
+
+        function updatePosition(time) {
+            const offset = (time.secondsOfDay % duration) / duration;
+            cartographic.longitude = Cesium.Math.toRadians(longitude - range + offset * 2 * range);
+            cartographic.latitude = Cesium.Math.toRadians(latitude);
+
+            let height;
+            if (viewer.scene.sampleHeightSupported) {
+                height = viewer.scene.sampleHeight(cartographic);
+            }
+            if (Cesium.defined(height)) {
+                cartographic.height = height;
+                point.label.text = `${Math.abs(height).toFixed(2).toString()} m`;
+                point.label.show = true;
+            }
+            else {
+                cartographic.height = 0;
+                point.label.show = false;
+            }
+            return Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height);
+        }
+
+        const point = viewer.entities.add({
+            position : new Cesium.CallbackProperty(updatePosition, false),
+            point : {
+                pixelSize : 10,
+                color : Cesium.Color.BLUE,
+                disableDepthTestDistance : Number.POSITIVE_INFINITY, // 防止被地形遮挡
+            },
+            label : {
+                showBackground : true,
+                font : '16px Helvetica',
+                horizontalOrigin : Cesium.HorizontalOrigin.LEFT,
+                verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset : new Cesium.Cartesian2(50, -50),
+            }
+        });
+
+
+
+
+
+
+    </script>
+</body>
+</html>

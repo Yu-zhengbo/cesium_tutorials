@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        .toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div class="toolbar">
+        <select id="dropdown">
+            <option value="0">null</option>
+            <option value="1">按建筑类型设置颜色</option>
+            <option value="2">按到指定位置的距离设置颜色</option>
+            <option value="3">交互渲染</option>
+            <option value="4">dormitory</option>
+            <option value="5">university</option>
+        </select>
+    </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+        
+        const dropdown = document.getElementById('dropdown');
+        dropdown.addEventListener('change', function() {
+            const value = dropdown.value;
+            switch (value) {
+                case '1':
+                    colorByBuildingType();
+                    handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+                    break;
+                case '2':
+                    colorByDistance();
+                    break;
+                case '3':
+                    interactiveRender();
+                    break;
+                case '4':
+                    showBuildingByType('dormitory');
+                    handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+                    break;
+                case '5':
+                    showBuildingByType('university');
+                    handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+                    break;
+                default:
+
+                    let osmBuildingsStyle = new Cesium.Cesium3DTileStyle({
+                        color: {
+                            conditions: [
+                                ["true", "color('white',0.8)"],
+                            ]
+                        }
+                    })
+                    osmBuildingsTileset.style = osmBuildingsStyle
+                    handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+                    break;
+            }
+        })
+
+        const osmBuildingsTileset = await Cesium.createOsmBuildingsAsync()
+        viewer.scene.primitives.add(osmBuildingsTileset)
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(114.39564, 30.52214, 2000)
+        })
+
+
+        
+        function colorByBuildingType() {
+            let osmBuildingsStyle = new Cesium.Cesium3DTileStyle({
+                color: {
+                    conditions: [
+                        ["${building}==='university'", "color('skyblue',0.8)"],
+                        ["${building}==='dormitory'", "color('cyan',0.9)"],
+                        ["${building}==='yes'", "color('yellow',0.7)"],
+                    ]
+                }
+            })
+            osmBuildingsTileset.style = osmBuildingsStyle
+        }
+
+        function showBuildingByType(buildingType) {
+            let osmBuildingsStyle = new Cesium.Cesium3DTileStyle({
+                show : `\${building} === '${buildingType}'`,
+                color: {
+                    conditions: [
+                        ["true", "color('red',0.8)"],
+                    ]
+                }
+                
+            })
+            osmBuildingsTileset.style = osmBuildingsStyle
+        }
+        
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+        function colorByDistance(){
+            handler.setInputAction(function(movement) {
+                // handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+                const pickedPosition = viewer.scene.pickPosition(movement.position)
+                const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition)
+                // console.log(cartographic.longitude, cartographic.latitude)
+                const longitude = Cesium.Math.toDegrees(cartographic.longitude)
+                const latitude = Cesium.Math.toDegrees(cartographic.latitude)
+                // console.log(longitude, latitude)
+                console.log(`vec2(${longitude}, ${latitude})`)
+                const osmBuildingsStyle = new Cesium.Cesium3DTileStyle({
+                    defines:{
+                        distance:
+                        `distance(vec2(\${feature['cesium#longitude']}, \${feature['cesium#latitude']}), vec2(${longitude}, ${latitude}))`
+                    },
+                    color: {
+                        conditions: [
+                            ["${distance}<0.001", "color('red',0.8)"],
+                            ["${distance}<0.01", "color('green',0.8)"],
+                            ["${distance}<0.1", "color('blue',0.8)"],
+                            ["true", "color('white',0.8)"]
+                        ]
+                    }
+                })
+                osmBuildingsTileset.style = osmBuildingsStyle
+                // handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+        }
+
+
+        function interactiveRender() {
+            handler.setInputAction(function(movement) {
+                const pickedFeature = viewer.scene.pick(movement.position)
+                if (Cesium.defined(pickedFeature)) {
+                    // console.log(pickedFeature)
+                    const osmBuildingsStyle = new Cesium.Cesium3DTileStyle({
+                        color: {
+                            conditions: [
+                                ["${elementId}==="+pickedFeature.getProperty('elementId'), "color('red',0.8)"],
+                            ]
+                        }
+                    })
+                    osmBuildingsTileset.style = osmBuildingsStyle
+                }
+                // handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+        }
+
+    </script>
+</body>
+</html>

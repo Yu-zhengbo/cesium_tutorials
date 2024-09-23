@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #toolbar{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+     <div id = "toolbar">
+        <label style="color:white">分辨率尺度</label>
+        <input type="range" max="2" step="0.1" value="1" id="range">
+        <input type="text" style="width: 70px;" id="text" value="1">
+     </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json',{
+            GroundOffset: 0,
+        })
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset);
+
+
+        const range = document.getElementById('range');
+        const text = document.getElementById('text');
+        range.addEventListener('input',function(){
+            text.value = range.value;
+            viewer.resolutionScale = Cesium.Math.clamp(range.value,0.1,2);
+            });
+        text.addEventListener('input',function(){
+            range.value = text.value;
+            viewer.resolutionScale = Cesium.Math.clamp(text.value,0.1,2);
+            });
+
+    </script>
+</body>
+</html>

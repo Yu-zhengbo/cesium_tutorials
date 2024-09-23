@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+    <style>
+        .toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div class="toolbar">
+        <select id="dropdown">
+            <option value="edit0">视频材质</option>
+            <option value="edit1">视频重复</option>
+        </select>
+    </div>
+
+    <video id='video' muted="true" autoplay="true" loop="true" style="display:none;">
+        <source src='../../sampleData/result.mp4' type='video/mp4'>    
+    </video>
+
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+
+        const videoElement = document.getElementById('video');
+        let synchronizer = new Cesium.VideoSynchronizer({
+            clock:viewer.clock,
+            element:videoElement,
+        });
+        // viewer.clock.shouldAnimate = true;
+
+        const sphere = viewer.entities.add({
+            position:Cesium.Cartesian3.fromDegrees(105.0, 35.0, 3200.0),
+            ellipsoid: {
+                radii: new Cesium.Cartesian3(1000.0, 1000.0, 1000.0),
+                material:videoElement,
+            },
+        });
+        viewer.trackedEntity = sphere;
+
+        let isRepeat = false;
+        sphere.ellipsoid.material.repeat = new Cesium.CallbackProperty(
+            function(result){
+                if (isRepeat) {
+                    result.x = 8;
+                    result.y = 8;
+                }
+                else{
+                    result.x = 1;
+                    result.y = 1;
+                }
+                return result;
+            },
+            false
+        )
+
+        const dropdown = document.getElementById('dropdown');
+        dropdown.addEventListener('change', function(event){
+            const value = event.target.value;
+            if (value === 'edit0') {
+                isRepeat = false;
+            }
+            else if (value === 'edit1') {
+                isRepeat = true;
+            }
+        });
+
+        videoElement.play().catch(error => {
+            console.error('Video playback failed:', error);
+        });
+    </script>
+</body>
+</html>

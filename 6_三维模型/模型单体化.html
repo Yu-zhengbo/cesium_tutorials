@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/倾斜摄影/大雁塔3DTiles/tileset.json')
+        viewer.scene.primitives.add(tileset)
+        viewer.zoomTo(tileset);
+
+        let classifytileset = await Cesium.Cesium3DTileset.fromUrl('../../../cesium_pdf/RasterImage/单体化切片/tileset.json')
+        classifytileset.stype = new Cesium.Cesium3DTileStyle({
+            color : 'rgba(255, 255, 255, 0.01)'
+        })
+        viewer.scene.primitives.add(classifytileset)
+
+        console.log(classifytileset)
+
+        const highlighted = {
+            feature : undefined,
+            originalColor : new Cesium.Color()
+        }
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function(movement) {
+            const pickedObject = viewer.scene.pick(movement.endPosition);
+            // console.log(pickedObject)
+            if (Cesium.defined(highlighted.feature)){
+                highlighted.feature.color = highlighted.originalColor;
+                highlighted.feature = undefined;
+            }
+
+            const pickedFeature = viewer.scene.pick(movement.endPosition);
+            if (!Cesium.defined(pickedFeature)){
+                return;
+            }
+            // console.log(pickedFeature)
+            highlighted.feature = pickedFeature
+            Cesium.Color.clone(pickedFeature.color, highlighted.originalColor);
+            pickedFeature.color = Cesium.Color.LIME.withAlpha(0.5);
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+
+        //常用的键盘事件
+        // SHIFT
+        // ALT
+        // CTRL
+
+    </script>
+</body>
+</html>
