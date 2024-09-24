@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #toolbar {
+            position: absolute;
+            top: 10px;  
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id="toolbar">
+        <button id="slope">坡度分析</button> <br>
+        <button id="aspect">坡向分析</button> <br>
+    </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        viewer.scene.globe.enableLighting = true;
+
+        const slopeRamp = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+        const aspectRamp = [0.0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
+
+        function getColorRamp(selectedShading){
+            const ramp  = document.createElement('canvas');
+            ramp.width = 100;
+            ramp.height = 1;
+            const ctx = ramp.getContext('2d');
+
+            let values;
+            if(selectedShading === 'Slope'){
+                values = slopeRamp;
+            }
+            else {
+                values = aspectRamp;
+            }
+
+            const grd = ctx.createLinearGradient(0, 0, 100, 0);
+            grd.addColorStop(values[0], "#b6d7a8"); //black
+            grd.addColorStop(values[1], "#a2c4c9"); //blue
+            grd.addColorStop(values[2], "#a4c2f4"); //pink
+            grd.addColorStop(values[3], "#6d9eeb"); //red
+            grd.addColorStop(values[4], "#3c78d8"); //orange
+            grd.addColorStop(values[5], "#1c4587"); //yellow
+            grd.addColorStop(values[6], "#20124d"); //blue
+
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, 100, 1);
+            return ramp;
+        }
+
+        let shadingUniforms = {};
+
+        function analysis(type){
+            let material
+            if (type === 'Slope') {
+
+                material = Cesium.Material.fromType("SlopeRamp")
+                shadingUniforms.image = getColorRamp(type);
+                material.uniforms = shadingUniforms;
+                // console.log(material);
+            }
+            else {
+                material = Cesium.Material.fromType("AspectRamp")
+                shadingUniforms.image = getColorRamp(type);
+                material.uniforms = shadingUniforms;
+            }
+            
+            viewer.scene.globe.material = material;
+        }
+
+
+        const slopeButton = document.getElementById('slope');
+        const aspectButton = document.getElementById('aspect');
+        slopeButton.addEventListener('click', () => {
+            analysis('Slope');
+        });
+        aspectButton.addEventListener('click', () => {
+            analysis('Aspect');
+        });
+
+
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(86.9250, 27.9881, 9000)  // 5000 米高度
+        });
+
+
+
+
+
+
+    </script>
+</body>
+</html>

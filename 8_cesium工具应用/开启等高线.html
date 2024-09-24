@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #toolbar {
+            position: absolute;
+            top: 10px;  
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id="toolbar">
+        <label style="color: white;">等高距</label> <br>
+        <input type="range" id="height" min="0" max="300" value="150" step="1">
+        <input type="text" id="heightValue" value="150" style="width: 70px;"> <br>
+        <label style="color: white;">线宽</label> <br>
+        <input type="range" id="width" min="0" max="20" value="2" step="1">
+        <input type="text" id="widthValue" value="2" style="width: 70px;"> <br>
+
+    </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrainProvider: await Cesium.createWorldTerrainAsync()
+        })
+
+        let height = document.getElementById("height")
+        let heightValue = document.getElementById("heightValue")
+        let width = document.getElementById("width")
+        let widthValue = document.getElementById("widthValue")
+
+        function height_width_change(){
+            heightValue.value = height.value
+            widthValue.value = width.value
+            addElevation()
+        }
+
+        function height_width_value_change(){
+            height.value = Number(heightValue.value)
+            width.value = Number(widthValue.value)
+            addElevation()
+        }
+
+        function addElevation(){
+            let height_value = Number(height.value)
+            let width_value = Number(width.value)
+            let material = Cesium.Material.fromType("ElevationContour")
+            let contour = {
+                'spacing' : height_value,
+                'width' : width_value,
+                'color' : Cesium.Color.RED
+            }
+            material.uniforms = contour
+            viewer.scene.globe.material = material            
+        }
+
+        height.addEventListener("input", height_width_change)
+        heightValue.addEventListener("input", height_width_value_change)
+        width.addEventListener("input", height_width_change)
+        widthValue.addEventListener("input", height_width_value_change)
+
+        addElevation()
+        
+
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(86.9250, 27.9881, 5000)  // 5000 米高度
+        });
+
+
+        // viewer.camera.setView({
+        //     detination : new Cesium.Cartesian3(282157.6960889096,5638892.465594703,2978736.186473513),
+        //     orientation : {
+        //         heading: 4.74,
+        //         pitch: -0.22,
+        //         roll: 6.28
+        //     }
+        // })
+
+
+
+    </script>
+</body>
+</html>

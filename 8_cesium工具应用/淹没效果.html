@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../Cesium-1.121/Build/Cesium/Cesium.js" ></script>
+    <link rel="stylesheet" href="../../Cesium-1.121/Build/Cesium/Widgets/widgets.css">
+    <style>
+        #toolbar{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        #toolbar input{
+            width: 100px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cesiumContainer"></div>
+    <div id = "toolbar">
+        <input type="text" id="minHeight" value="50" placeholder="最小高度"> <br>
+        <input type="text" id="maxHeight" value="120" placeholder="最大高度"> <br>
+        <input type="text" id="speed" value="1" placeholder="速度"> <br>
+        <button id="addWater">淹没</button>
+    </div>
+    <script type="module">
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhN2E0NTM3My1mOTEwLTRhMDUtYmI4MC02ODI1NWIzMWFkNjAiLCJpZCI6MjM4NzIxLCJpYXQiOjE3MjUzMzI3NzJ9.18o8DBrTweBwR8XiS3CvhpbS94DMRuDCITdVYURtixY';
+
+        const viewer = new Cesium.Viewer('cesiumContainer',{
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        })
+
+        let height;
+        let maxHeight;
+        let speed;
+        let positions = [];
+
+        function undateHeight() {
+
+            height += speed;
+            // console.log(height, maxHeight)
+            if (height >= maxHeight) {
+                return maxHeight;
+            }
+            return height;
+        }
+
+        function addWater(positions) {
+            let addRegion = {
+                id : 'polygon',
+                name : '水面',
+                show : true,
+                polygon : {
+                    hierarchy : positions,
+                    material : new Cesium.ImageMaterialProperty({
+                        image : '../../../cesium_pdf/RasterImage/图片/河流纹理.png',
+                        repeat : new Cesium.Cartesian2(10, 10),
+                        transparent: true,
+                        color:Cesium.Color.WHITE.withAlpha(0.2)
+                    }),
+                    height: new Cesium.CallbackProperty(undateHeight, false),
+                }
+            }
+            // console.log(height)
+            viewer.entities.add(addRegion);
+        }
+
+        function addPoint(position) {
+            let addEntity = viewer.entities.add({
+                position: position,
+                point: {
+                    pixelSize: 10,
+                    color: Cesium.Color.BLUE,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 2,
+                }
+            });
+        }
+
+        function addPolygon(positions){
+            let addEntity = viewer.entities.add({
+                name: '多边形',
+                polygon: {
+                    hierarchy: positions,
+                    material: new Cesium.Color.fromRandom(),
+                    outline: true,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 2,
+                }
+            })
+        }
+        const hander = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        hander.setInputAction(function(movement) {
+            let point = viewer.scene.pickPosition(movement.position)
+            // console.log(point)
+            if (Cesium.defined(point)) {
+                positions.push(point);
+                addPoint(point);
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        
+        // hander.setInputAction(function(movement) {
+        //     if (positions.length > 2) {
+        //         addWater(positions);
+        //     }
+        //     positions = []
+        // }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+        
+
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+        viewer.camera.flyTo({
+            destination:Cesium.Cartesian3.fromDegrees(114.38564, 30.52914, 2000),
+        })
+
+
+        document.getElementById('addWater').addEventListener('click', function() {
+            maxHeight = parseInt(document.getElementById('maxHeight').value);
+            height = parseInt(document.getElementById('minHeight').value);
+            speed = parseInt(document.getElementById('speed').value);
+            viewer.entities.removeAll();
+            if (positions.length > 2) {
+                // addPolygon(positions);
+                addWater(positions);
+            }
+            positions = []
+        })
+    </script>
+</body>
+</html>
